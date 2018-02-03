@@ -9,7 +9,8 @@
 
 int main(int argc, char *argv[])  { 
 
-    int row, col, max_size;
+    int row, col, col_count, row_count,  maximum_gray_level = 255;
+    float slope, proportion, gray_value;
     struct PBM_Image pic_pbm;
     struct PGM_Image pic_pgm;
     struct PPM_Image pic_ppm;
@@ -65,20 +66,18 @@ int main(int argc, char *argv[])  {
             printf("height 1/4: %d, height 3/4: %d, width 1/4: %d, width 3/4: %d\n", pic_pbm.height/4, (pic_pbm.height*3)/4, pic_pbm.width/4, (pic_pbm.width*3)/4);
 
             // Calculate slope for the corner to corner black pixels
-            float slope = (float)pic_pbm.height / (float)pic_pbm.width;
+            slope = (float)pic_pbm.height / (float)pic_pbm.width;
             printf("slope: %.5f\n", slope);
 
             // When height is greater, go row by row to cover every pixel in the line
             if(pic_pbm.height>pic_pbm.width) {
-                max_size = pic_pbm.height;
-                for(row = 0; row<max_size; row++) {
+                for(row = 0; row<pic_pbm.height; row++) {
                     pic_pbm.image[row][(int)(row/slope)] = 1; // black
                     pic_pbm.image[row][pic_pbm.width - 1 - (int)(row/slope)] = 1; 
                 }
             // Column by column to cover cases when width is greater (or square images)
-            } else { 
-                max_size = pic_pbm.width;
-                for(col = 0; col<max_size; col++) {
+                } else { 
+                for(col = 0; col<pic_pbm.width; col++) {
                     pic_pbm.image[(int)(col*slope)][col] = 1; // black
                     pic_pbm.image[pic_pbm.height - 1 - (int)(col*slope)][col] = 1; 
                 }
@@ -91,6 +90,50 @@ int main(int argc, char *argv[])  {
 
         case PGM:
             // PGM image creation
+            create_PGM_Image(&pic_pgm, image_width, image_height, maximum_gray_level); 
+
+            // Iterate through all pixels and set pixel white if in the middle, else set to black
+            for(row = 0; row<pic_pgm.height; row++) {
+                for(col = 0; col<pic_pgm.width; col++) {
+                    if(row >= pic_pgm.height/4 && row < (pic_pgm.height*3)/4 && col >= pic_pgm.width/4 && col < (pic_pgm.width*3)/4)
+                        pic_pgm.image[row][col] = 255; // white
+                    else
+                        pic_pgm.image[row][col] = 0; // black
+                }
+            }
+            printf("height 1/4: %d, height 3/4: %d, width 1/4: %d, width 3/4: %d\n", pic_pgm.height/4, (pic_pgm.height*3)/4, pic_pgm.width/4, (pic_pgm.width*3)/4);
+
+            // Calculate slope for the corner to corner black pixels
+            slope = (float)pic_pgm.height / (float)pic_pgm.width;
+            printf("slope: %.5f\n", slope);
+
+            // When height is greater, go row by row to cover every pixel in the line
+            if(pic_pgm.height>pic_pgm.width) {
+                for(row = 0; row<pic_pgm.height; row++) {
+                    pic_pgm.image[row][(int)(row/slope)] = 1; // black
+                    pic_pgm.image[row][pic_pgm.width - 1 - (int)(row/slope)] = 1; 
+                }
+            // Column by column to cover cases when width is greater (or square images)
+            } else { 
+                proportion = ((float)pic_pgm.width * 2.0) / (float)pic_pgm.width;
+                row_count = 0;
+                for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {            
+                    col_count = 0;
+                    row_count++;
+                    gray_value = 255.0;
+                    for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
+                        pic_pgm.image[row][col] = (int)(gray_value-((float)col_count*proportion)); // black
+                        if((row_count*proportion)+(pic_pgm.width/4) > col) {
+                            col_count++;
+                            //pic_pgm.image[pic_pgm.height - 1 - (int)(col*slope)][col] = 0; 
+                        } 
+                    }
+                }
+            }
+            
+            // Save image after setting pixels then cleanup 
+            save_PGM_Image(&pic_pgm, output_image, image_format);
+            free_PGM_Image(&pic_pgm);
             break;
 
         case PPM:

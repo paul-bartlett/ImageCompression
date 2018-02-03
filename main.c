@@ -10,7 +10,7 @@
 int main(int argc, char *argv[])  { 
 
     int row, col, col_count, row_count,  maximum_gray_level = 255;
-    float slope, proportion, gray_value;
+    float slope, proportion;
     struct PBM_Image pic_pbm;
     struct PGM_Image pic_pgm;
     struct PPM_Image pic_ppm;
@@ -115,17 +115,16 @@ int main(int argc, char *argv[])  {
                 }
             // Column by column to cover cases when width is greater (or square images)
             } else { 
-                proportion = ((float)pic_pgm.width * 2.0) / (float)pic_pgm.width;
-                row_count = 0;
+                row_count = 0; // initialize
                 for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {            
                     col_count = 0;
                     row_count++;
-                    gray_value = 255.0;
                     for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
-                        pic_pgm.image[row][col] = (int)(gray_value-((float)col_count*proportion)); // black
-                        if((row_count*proportion)+(pic_pgm.width/4) > col) {
+                        // Takes max grey value and subtracts by the current column number to get increasingly dark towards the right
+                        pic_pgm.image[row][col] = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / (float)(pic_pgm.width/4)));
+                        // Increases count proportionally with higher rows so it gets increasingly dark toward bottom
+                        if((row_count / slope)+(pic_pgm.width/4) > col) {
                             col_count++;
-                            //pic_pgm.image[pic_pgm.height - 1 - (int)(col*slope)][col] = 0; 
                         } 
                     }
                 }

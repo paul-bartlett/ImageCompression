@@ -164,7 +164,7 @@ int main(int argc, char *argv[])  {
                 for(col = pic_ppm.width/2; col<pic_ppm.width; col++) {
                     pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row_count / proportion);;
                     pic_ppm.image[row][col][GREEN] = maximum_gray_level - (int)((float)row_count / proportion);;
-                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row_count / proportion);
+                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row / proportion);
                 }
                 row_count++;
             }
@@ -177,5 +177,6 @@ int main(int argc, char *argv[])  {
             // Invalid number should be caught in initial size check
             break;
     }
+    return 0;
 }
 

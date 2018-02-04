@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[])  { 
 
-    int row, col, col_count, row_count,  maximum_gray_level = 255;
+    int row, col, col_count, row_count, gray_level, maximum_gray_level = 255;
     float slope, proportion;
     struct PBM_Image pic_pbm;
     struct PGM_Image pic_pgm;
@@ -25,19 +25,19 @@ int main(int argc, char *argv[])  {
     int image_height = atoi(argv[3]);
     char * output_image = argv[4];
     int image_format = atoi(argv[5]);
-    printf("type:%d, width:%d, height:%d, name:%s, format:%d\n", image_type, image_width, image_height, output_image, image_format);
+    printf("type: %d, width: %d, height: %d, name: %s, format: %d\n", image_type, image_width, image_height, output_image, image_format);
 
     // Check image size depending on image type
     if(image_type == PBM || image_type == PGM) {
         if(image_width >= 4 && image_width % 4 == 0 && image_height >= 4 && image_height % 4 == 0)
-            printf("good size\n");
+            printf("Good image size\n");
         else {
             printf("Width must be greater or equal to 4 and divisible by 4, and height must be greater or equal to 4 and divisible by 4\n");
             return -1;
         }
     } else if(image_type == PPM) {
         if(image_width >= 6 && image_width % 6 == 0 && image_height >= 4 && image_height % 4 == 0)
-            printf("good size\n");
+            printf("Good image size\n");
         else {
             printf("Width must be greater or equal to 6 and divisible by 6, and height must be greater or equal to 4 and divisible by 4\n");
             return -1;
@@ -75,14 +75,14 @@ int main(int argc, char *argv[])  {
                     pic_pbm.image[row][(int)(row/slope)] = 1; // black
                     pic_pbm.image[row][pic_pbm.width - 1 - (int)(row/slope)] = 1; 
                 }
-            // Column by column to cover cases when width is greater (or square images)
-                } else { 
+                // Column by column to cover cases when width is greater (or square images)
+            } else { 
                 for(col = 0; col<pic_pbm.width; col++) {
                     pic_pbm.image[(int)(col*slope)][col] = 1; // black
                     pic_pbm.image[pic_pbm.height - 1 - (int)(col*slope)][col] = 1; 
                 }
             }
-            
+
             // Save image after setting pixels then cleanup 
             save_PBM_Image(&pic_pbm, output_image, image_format);
             free_PBM_Image(&pic_pbm);
@@ -103,33 +103,30 @@ int main(int argc, char *argv[])  {
             }
             printf("height 1/4: %d, height 3/4: %d, width 1/4: %d, width 3/4: %d\n", pic_pgm.height/4, (pic_pgm.height*3)/4, pic_pgm.width/4, (pic_pgm.width*3)/4);
 
-            // Calculate slope for the corner to corner black pixels
+            // Calculate slope for the increase in darkness towards the bottom
             slope = (float)pic_pgm.height / (float)pic_pgm.width;
             printf("slope: %.5f\n", slope);
 
-            // When height is greater, go row by row to cover every pixel in the line
-            if(pic_pgm.height>pic_pgm.width) {
-                for(row = 0; row<pic_pgm.height; row++) {
-                    pic_pgm.image[row][(int)(row/slope)] = 1; // black
-                    pic_pgm.image[row][pic_pgm.width - 1 - (int)(row/slope)] = 1; 
-                }
-            // Column by column to cover cases when width is greater (or square images)
-            } else { 
-                row_count = 0; // initialize
-                for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {            
-                    col_count = 0;
-                    row_count++;
-                    for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
-                        // Takes max grey value and subtracts by the current column number to get increasingly dark towards the right
-                        pic_pgm.image[row][col] = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / (float)(pic_pgm.width/4)));
-                        // Increases count proportionally with higher rows so it gets increasingly dark toward bottom
-                        if((row_count / slope)+(pic_pgm.width/4) > col) {
-                            col_count++;
-                        } 
-                    }
+            // Creates middle of image that gets increasingly dark towards the center
+            row_count = 0; // initialize
+            for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {            
+                col_count = 0;
+                row_count++;
+                for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
+                    // Takes max grey value and subtracts by the current column number to get increasingly dark towards the right
+                    gray_level = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / (float)(pic_pgm.width/4)));
+                    // Mirror the gray value on each corner of the center
+                    pic_pgm.image[row][col] = gray_level;
+                    pic_pgm.image[(pic_pgm.height - 1) - row][col] = gray_level;
+                    pic_pgm.image[row][(pic_pgm.width - 1) - col] = gray_level;
+                    pic_pgm.image[(pic_pgm.height - 1) - row][(pic_pgm.width - 1) - col] = gray_level;
+                    // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
+                    if((row_count / slope)+(pic_pgm.width/4) > col) {
+                        col_count++;
+                    } 
                 }
             }
-            
+
             // Save image after setting pixels then cleanup 
             save_PGM_Image(&pic_pgm, output_image, image_format);
             free_PGM_Image(&pic_pgm);
@@ -137,11 +134,48 @@ int main(int argc, char *argv[])  {
 
         case PPM:
             // PPM image creation
+            create_PPM_Image(&pic_ppm, image_width, image_height, maximum_gray_level); 
+            proportion = ((float)pic_ppm.height / 2.0) / (float)maximum_gray_level;
+            printf("%.5f\n", proportion);
+            row_count = 0; // initialize
+            for(row = 0; row<pic_ppm.height/2; row++) {            
+                for(col = 0; col<pic_ppm.width/3; col++) {
+                    pic_ppm.image[row][col][RED] = maximum_gray_level;
+                    pic_ppm.image[row][col][GREEN] = (int)((float)row / proportion);
+                    pic_ppm.image[row][col][BLUE] = (int)((float)row / proportion);
+                }
+                for(col = pic_ppm.width/3; col<(pic_ppm.width*2)/3; col++) {
+                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row / proportion);;
+                    pic_ppm.image[row][col][GREEN] = maximum_gray_level;
+                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row / proportion);
+                }
+                for(col = (pic_ppm.width*2)/3; col<pic_ppm.width; col++) {
+                    pic_ppm.image[row][col][RED] = (int)((float)row / proportion);
+                    pic_ppm.image[row][col][GREEN] = (int)((float)row / proportion);
+                    pic_ppm.image[row][col][BLUE] = maximum_gray_level;
+                }
+            }
+            for(row = pic_ppm.height/2; row<pic_ppm.height; row++) {
+                for(col = 0; col<pic_ppm.width/2; col++) {
+                    pic_ppm.image[row][col][RED] = (int)((float)row_count / proportion);
+                    pic_ppm.image[row][col][GREEN] = (int)((float)row_count / proportion);
+                    pic_ppm.image[row][col][BLUE] = (int)((float)row_count / proportion);
+                }
+                for(col = pic_ppm.width/2; col<pic_ppm.width; col++) {
+                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row_count / proportion);;
+                    pic_ppm.image[row][col][GREEN] = maximum_gray_level - (int)((float)row_count / proportion);;
+                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row_count / proportion);
+                }
+                row_count++;
+            }
+
+            save_PPM_Image(&pic_ppm, output_image, image_format);
+            free_PPM_Image(&pic_ppm);
             break;
 
         default:
             // Invalid number should be caught in initial size check
             break;
-        }
     }
+}
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "libpnm.h"
 
@@ -12,7 +13,7 @@ int main(int argc, char *argv[])  {
     int row, col, col_count, row_count, gray_level, maximum_gray_level = 255;
     float slope, proportion;
     struct PBM_Image pic_pbm;
-    struct PGM_Image pic_pgm;
+    struct PGM_Image pic_pgm, pic_pgm_red, pic_pgm_green, pic_pgm_blue;
     struct PPM_Image pic_ppm;
 
     if(argc != 6) {
@@ -26,6 +27,9 @@ int main(int argc, char *argv[])  {
     char * output_image = argv[4];
     int image_format = atoi(argv[5]);
     printf("type: %d, width: %d, height: %d, name: %s, format: %d\n", image_type, image_width, image_height, output_image, image_format);
+
+    char * file_name = malloc(strlen(output_image) + 4 + 1); // 4 for extension
+    strcpy(file_name, output_image);
 
     // Check image size depending on image type
     if(image_type == PBM || image_type == PGM) {
@@ -84,7 +88,9 @@ int main(int argc, char *argv[])  {
             }
 
             // Save image after setting pixels then cleanup 
-            save_PBM_Image(&pic_pbm, output_image, image_format);
+            strcat(file_name, ".pbm");
+            save_PBM_Image(&pic_pbm, file_name, image_format);
+            free(file_name);
             free_PBM_Image(&pic_pbm);
             break;
 
@@ -128,7 +134,9 @@ int main(int argc, char *argv[])  {
             }
 
             // Save image after setting pixels then cleanup 
-            save_PGM_Image(&pic_pgm, output_image, image_format);
+            strcat(file_name, ".pgm");
+            save_PGM_Image(&pic_pgm, file_name, image_format);
+            free(file_name);
             free_PGM_Image(&pic_pgm);
             break;
 
@@ -136,7 +144,6 @@ int main(int argc, char *argv[])  {
             // PPM image creation
             create_PPM_Image(&pic_ppm, image_width, image_height, maximum_gray_level); 
             proportion = ((float)pic_ppm.height / 2.0) / (float)maximum_gray_level;
-            printf("%.5f\n", proportion);
             row_count = 0; // initialize
             for(row = 0; row<pic_ppm.height/2; row++) {            
                 for(col = 0; col<pic_ppm.width/3; col++) {
@@ -168,9 +175,33 @@ int main(int argc, char *argv[])  {
                 }
                 row_count++;
             }
+            // Copy each color to a gray map then save and free memory
+            copy_PPM_to_PGM(&pic_ppm, &pic_pgm_red, RED);
+            copy_PPM_to_PGM(&pic_ppm, &pic_pgm_green, GREEN);
+            copy_PPM_to_PGM(&pic_ppm, &pic_pgm_blue, BLUE);
 
-            save_PPM_Image(&pic_ppm, output_image, image_format);
+            char * file_name_r = malloc(strlen(output_image) + 6 + 1); // 6 for extension plus identifier
+            char * file_name_g = malloc(strlen(output_image) + 6 + 1); 
+            char * file_name_b = malloc(strlen(output_image) + 6 + 1); 
+            strcpy(file_name_r, output_image);
+            strcpy(file_name_g, output_image);
+            strcpy(file_name_b, output_image);
+            strcat(file_name, ".ppm");
+            strcat(file_name_r, "_R.pgm");
+            strcat(file_name_g, "_G.pgm");
+            strcat(file_name_b, "_B.pgm");
+            save_PPM_Image(&pic_ppm, file_name, image_format);
+            save_PGM_Image(&pic_pgm_red, file_name_r, image_format);
+            save_PGM_Image(&pic_pgm_green, file_name_g, image_format);
+            save_PGM_Image(&pic_pgm_blue, file_name_b, image_format);
+
+            free(file_name_r);
+            free(file_name_g);
+            free(file_name_b);
             free_PPM_Image(&pic_ppm);
+            free_PGM_Image(&pic_pgm_red);
+            free_PGM_Image(&pic_pgm_green);
+            free_PGM_Image(&pic_pgm_blue);
             break;
 
         default:

@@ -152,7 +152,7 @@ int main(int argc, char *argv[])  {
                     pic_ppm.image[row][col][BLUE] = (int)((float)row / proportion);
                 }
                 for(col = pic_ppm.width/3; col<(pic_ppm.width*2)/3; col++) {
-                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row / proportion);;
+                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row / proportion);
                     pic_ppm.image[row][col][GREEN] = maximum_gray_level;
                     pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row / proportion);
                 }
@@ -169,9 +169,9 @@ int main(int argc, char *argv[])  {
                     pic_ppm.image[row][col][BLUE] = (int)((float)row_count / proportion);
                 }
                 for(col = pic_ppm.width/2; col<pic_ppm.width; col++) {
-                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row_count / proportion);;
-                    pic_ppm.image[row][col][GREEN] = maximum_gray_level - (int)((float)row_count / proportion);;
-                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row / proportion);
+                    pic_ppm.image[row][col][RED] = maximum_gray_level - (int)((float)row_count / proportion);
+                    pic_ppm.image[row][col][GREEN] = maximum_gray_level - (int)((float)row_count / proportion);
+                    pic_ppm.image[row][col][BLUE] = maximum_gray_level - (int)((float)row_count / proportion);
                 }
                 row_count++;
             }

@@ -35,23 +35,23 @@ testValidation:
 	@echo "----------------------------------------"
 	@echo "Checking inputs validation"
 	@echo 
-	main 1 120 120 
+	./main 1 120 120 
 	@echo "----------------------------------------"
-	main 0 120 120 image 0 
+	./main 0 120 120 image 0 
 	@echo "----------------------------------------"
-	main 4 120 120 image 0 
+	./main 4 120 120 image 0 
 	@echo "----------------------------------------"
-	main 1 125 120 image 1 
+	./main 1 125 120 image 1 
 	@echo "----------------------------------------"
-	main 1  -4 120 image 1 
+	./main 1  -4 120 image 1 
 	@echo "----------------------------------------"
-	main 3 124 120 image 1 
+	./main 3 124 120 image 1 
 	@echo "----------------------------------------"
-	main 3  -4 120 image 1 
+	./main 3  -4 120 image 1 
 	@echo "----------------------------------------"
-	main 1 120  -6 image 1 
+	./main 1 120  -6 image 1 
 	@echo "----------------------------------------"
-	main 1 120 120 image 2 
+	./main 1 120 120 image 2 
 	@echo "----------------------------------------"
 
 testPBM: 
@@ -61,17 +61,17 @@ testPBM:
 	@echo "----------------------------------------"
 	@echo "Generating PBM images"
 	@echo 
-	main 1 120 120 binary_120_120_raw.pbm 1 
+	./main 1 120 120 binary_120_120_raw.pbm 1 
 	@echo "----------------------------------------"
-	main 1 120 120 binary_120_120_ascii.pbm 0 
+	./main 1 120 120 binary_120_120_ascii.pbm 0 
 	@echo "----------------------------------------"
-	main 1 1200 1200 binary_1200_1200_ascii.pbm 0 
+	./main 1 1200 1200 binary_1200_1200_ascii.pbm 0 
 	@echo "----------------------------------------"
-	main 1 1200 300 binary_1200_300_ascii.pbm 0 
+	./main 1 1200 300 binary_1200_300_ascii.pbm 0 
 	@echo "----------------------------------------"
-	main 1 300 1200 binary_300_1200_ascii.pbm 0 
+	./main 1 300 1200 binary_300_1200_ascii.pbm 0 
 	@echo "----------------------------------------"
-	main 1 4 120 binary_4_120_ascii.pbm 0 
+	./main 1 4 120 binary_4_120_ascii.pbm 0 
 	@echo "----------------------------------------"
 
 testPGM: 
@@ -81,17 +81,17 @@ testPGM:
 	@echo "----------------------------------------"
 	@echo "Generating PGM images"
 	@echo 
-	main 2 120 120 gray_120_120_raw.pgm 1 
+	./main 2 120 120 gray_120_120_raw.pgm 1 
 	@echo "----------------------------------------"
-	main 2 120 120 gray_120_120_ascii.pgm 0 
+	./main 2 120 120 gray_120_120_ascii.pgm 0 
 	@echo "----------------------------------------"
-	main 2 1200 1200 gray_1200_1200_ascii.pgm 0 
+	./main 2 1200 1200 gray_1200_1200_ascii.pgm 0 
 	@echo "----------------------------------------"
-	main 2 1200 300 gray_1200_300_ascii.pgm 0 
+	./main 2 1200 300 gray_1200_300_ascii.pgm 0 
 	@echo "----------------------------------------"
-	main 2 300 1200 gray_300_1200_ascii.pgm 0 
+	./main 2 300 1200 gray_300_1200_ascii.pgm 0 
 	@echo "----------------------------------------"
-	main 2 4 120 gray_4_120_ascii.pgm 0 
+	./main 2 4 120 gray_4_120_ascii.pgm 0 
 	@echo "----------------------------------------"
 
 testPPM: 
@@ -101,17 +101,17 @@ testPPM:
 	@echo "----------------------------------------"
 	@echo "Generating PPM images"
 	@echo 
-	main 3 120 120 color_120_120_raw.ppm 1 
+	./main 3 120 120 color_120_120_raw.ppm 1 
 	@echo "----------------------------------------"
-	main 3 120 120 color_120_120_ascii.ppm 0 
+	./main 3 120 120 color_120_120_ascii.ppm 0 
 	@echo "----------------------------------------"
-	main 3 1200 1200 color_1200_1200_ascii.ppm 0 
+	./main 3 1200 1200 color_1200_1200_ascii.ppm 0 
 	@echo "----------------------------------------"
-	main 3 1200 300 color_1200_300_ascii.ppm 0 
+	./main 3 1200 300 color_1200_300_ascii.ppm 0 
 	@echo "----------------------------------------"
-	main 3 300 1200 color_300_1200_ascii.ppm 0 
+	./main 3 300 1200 color_300_1200_ascii.ppm 0 
 	@echo "----------------------------------------"
-	main 3 6 120 color_4_120_ascii.ppm 0 
+	./main 3 6 120 color_4_120_ascii.ppm 0 
 	@echo "----------------------------------------"
 
 testAll: 

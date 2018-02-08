@@ -111,6 +111,10 @@ int main(int argc, char *argv[])  {
                     row_count = 0;
                     col_count++;
                     for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {
+                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
+                        if((col_count*slope)+(pic_pgm.height/4) > row) {
+                            row_count++;
+                        } 
                         // Takes max grey value and subtracts by the greatest  number to get increasingly dark towards the right
                         gray_level = (int)((float)maximum_gray_level-((float)row_count) * ((float)maximum_gray_level / (float)(pic_pgm.height/4)));
                         // Mirror the gray value on each corner of the center
@@ -118,10 +122,6 @@ int main(int argc, char *argv[])  {
                         pic_pgm.image[(pic_pgm.height - 1) - row][col] = gray_level;
                         pic_pgm.image[row][(pic_pgm.width - 1) - col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][(pic_pgm.width - 1) - col] = gray_level;
-                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
-                        if((col_count*slope)+(pic_pgm.height/4) > row) {
-                            row_count++;
-                        } 
                     }
                 }
             } else {
@@ -131,6 +131,10 @@ int main(int argc, char *argv[])  {
                     col_count = 0;
                     row_count++;
                     for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
+                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
+                        if((row_count/slope)+(pic_pgm.width/4) > col) {
+                            col_count++;
+                        } 
                         // Takes max grey value and subtracts by the greatest  number to get increasingly dark towards the right
                         gray_level = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / (float)(pic_pgm.width/4)));
                         // Mirror the gray value on each corner of the center
@@ -138,10 +142,6 @@ int main(int argc, char *argv[])  {
                         pic_pgm.image[(pic_pgm.height - 1) - row][col] = gray_level;
                         pic_pgm.image[row][(pic_pgm.width - 1) - col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][(pic_pgm.width - 1) - col] = gray_level;
-                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
-                        if((row_count/slope)+(pic_pgm.width/4) > col) {
-                            col_count++;
-                        } 
                     }
                 }
             }

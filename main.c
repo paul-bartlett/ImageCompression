@@ -119,17 +119,17 @@ int main(int argc, char *argv[])  {
                     row_count = 0;
                     col_count++;
                     for(row = pic_pgm.height/4; row<pic_pgm.height/2; row++) {
-                        // Increases count proportionally with higher rows so it gets increasingly dark towards the right
-                        if((col_count*slope)+(pic_pgm.height/4) > row) {
-                            row_count++;
-                        } 
                         // Takes max grey value and subtracts by the proportional height to get increasingly dark towards the bottom
-                        gray_level = (int)((float)maximum_gray_level-((float)row_count) * ((float)maximum_gray_level / (float)(pic_pgm.height/4)));
+                        gray_level = (int)((float)maximum_gray_level-((float)row_count) * ((float)maximum_gray_level / ((float)(pic_pgm.height/4) - 1.0)));
                         // Mirror the gray value on each corner of the center portion
                         pic_pgm.image[row][col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][col] = gray_level;
                         pic_pgm.image[row][(pic_pgm.width - 1) - col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][(pic_pgm.width - 1) - col] = gray_level;
+                        // Increases count proportionally with higher rows so it gets increasingly dark towards the right
+                        if((col_count*slope)+(pic_pgm.height/4 - 1) > row) {
+                            row_count++;
+                        } 
                     }
                 }
             } else {
@@ -139,17 +139,17 @@ int main(int argc, char *argv[])  {
                     col_count = 0;
                     row_count++;
                     for(col = pic_pgm.width/4; col<pic_pgm.width/2; col++) {
-                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
-                        if((row_count/slope)+(pic_pgm.width/4) > col) {
-                            col_count++;
-                        } 
                         // Takes max grey value and subtracts by the proportional width to get increasingly dark towards the right
-                        gray_level = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / (float)(pic_pgm.width/4)));
+                        gray_level = (int)((float)maximum_gray_level-((float)col_count) * ((float)maximum_gray_level / ((float)(pic_pgm.width/4) - 1.0)));
                         // Mirror the gray value on each corner of the center portion
                         pic_pgm.image[row][col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][col] = gray_level;
                         pic_pgm.image[row][(pic_pgm.width - 1) - col] = gray_level;
                         pic_pgm.image[(pic_pgm.height - 1) - row][(pic_pgm.width - 1) - col] = gray_level;
+                        // Increases count proportionally with higher rows so it gets increasingly dark towards the bottom
+                        if((row_count/slope)+(pic_pgm.width/4 - 1) > col) {
+                            col_count++;
+                        } 
                     }
                 }
             }
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])  {
             // PPM image creation
             create_PPM_Image(&pic_ppm, image_width, image_height, maximum_gray_level); 
             // proportion of colour for half the height of the image
-            proportion = ((float)pic_ppm.height / 2.0) / (float)maximum_gray_level;
+            proportion = (((float)pic_ppm.height / 2.0) - 1) / (float)maximum_gray_level;
             row_count = 0; // initialize
             // Loops for the top half of the image to fill in each colour gradient
             for(row = 0; row<pic_ppm.height/2; row++) {

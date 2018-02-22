@@ -3,21 +3,16 @@
 #include <math.h>
 #include "generate_huffman_nodes.h"
 
-struct node {
-    int first_value;
-    int second_value;
-};
-
 struct node *generate_huffman_nodes(long int *pixel_frequency, int max_gray_value, int number_of_non_zero_values_in_the_frequency_array) {
     
     int non_zero = number_of_non_zero_values_in_the_frequency_array;
-    int frequency_array[non_zero], freq_i = 0, i = 0, min, second_min;
+    int frequency_map[non_zero], freq_i = 0, i = 0, min, second_min;
     struct node *huffman_nodes = malloc((non_zero - 1) * sizeof(struct node));
 
-    // Flatten large pixel frequency array to remove 0 values
+    // Create mapping to frequencies that are non-zero
     while(freq_i < non_zero) {
         if (pixel_frequency[i] > 0){
-            frequency_array[freq_i] = pixel_frequency[i];
+            frequency_map[freq_i] = i;
             freq_i++;
         }
         i++;
@@ -29,13 +24,13 @@ struct node *generate_huffman_nodes(long int *pixel_frequency, int max_gray_valu
         // Find two lowest values to combine as a pair
         for(int freq_i = 0; freq_i < non_zero; freq_i++) {
             // Record min index if new value is lower, and check second min
-            if (frequency_array[freq_i] == 0) {
+            if (pixel_frequency[frequency_map[freq_i]] == 0) {
                 // pass if zeroed
-            } else if (frequency_array[min] > frequency_array[freq_i]) {
+            } else if (pixel_frequency[min] > pixel_frequency[frequency_map[freq_i]]) {
                 second_min = min;
-                min = freq_i;
-            } else if (frequency_array[second_min] > frequency_array[freq_i]) {
-                second_min = freq_i;
+                min = frequency_map[freq_i];
+            } else if (pixel_frequency[second_min] > pixel_frequency[frequency_map[freq_i]]) {
+                second_min = frequency_map[freq_i];
             }
         }
         // Check if last one
@@ -43,8 +38,8 @@ struct node *generate_huffman_nodes(long int *pixel_frequency, int max_gray_valu
             printf("Error in last huffman pair generation\n");
         } else {
             // Combine values and zero one
-            frequency_array[second_min] += frequency_array[min];
-            frequency_array[min] = 0;
+            pixel_frequency[second_min] += pixel_frequency[min];
+            pixel_frequency[min] = 0;
             
             // Record pair
             struct node huffman_node = { second_min, min };

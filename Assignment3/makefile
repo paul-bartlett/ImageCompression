@@ -6,8 +6,9 @@
 
 #==================================================
 # MACRO definitions
-CFLAG = -std=c99 -Wall -lm
+CFLAG = -std=c99 -Wall
 CC = gcc
+LIBS = -lm
 
 #==================================================
 # All Targets
@@ -27,7 +28,7 @@ Q3a lz77_encoding: lz77_encoding.c \
 	$(CC) $(CFLAG) -o lz77_encoding \
                   lz77_encoding.c \
                   lz77_encoding_function.o \
-                  libpnm.o
+                  libpnm.o $(LIBS)
 
 
 #--------------------------------------------------
@@ -43,7 +44,7 @@ Q3b lz77_decoding: lz77_decoding.c \
 	$(CC) $(CFLAG) -o lz77_decoding \
                   lz77_decoding.c \
                   lz77_decoding_function.o \
-                  libpnm.o
+                  libpnm.o $(LIBS)
 
 
 #--------------------------------------------------
@@ -58,7 +59,7 @@ Q3c compare_pgm_images: compare_pgm_images.c \
 	$(CC) $(CFLAG) -o compare_pgm_images \
                       compare_pgm_images.c \
                       mean_absolute_error.o \
-                      libpnm.o
+                      libpnm.o $(LIBS)
 
 
 #--------------------------------------------------

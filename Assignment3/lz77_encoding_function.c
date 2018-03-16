@@ -21,10 +21,10 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
         *matching_length = calloc(pixel_count, sizeof(int)), 
         *next_symbol = calloc(pixel_count, sizeof(int));
 
-    int current_buffer_size = 0, matches, pix;
+    int current_buffer_size = 0, matches, tok;
     
     // Iterate through all pixels to create all LZ77 tokens
-    for(pix = 0; current_buffer_size < pixel_count; pix++) {
+    for(tok = 0; current_buffer_size < pixel_count; tok++) {
         // Buffer through previous values and search for matches
         for(int i = 1; i <= searching_buffer_size && i <= current_buffer_size; i++) {
             matches = 0;
@@ -33,14 +33,14 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
                 matches++;
             }
             // Update match length only if larger
-            if(matches > matching_length[pix]) {
-                matching_length[pix] = matches;
-                offset[pix] = i;
+            if(matches > matching_length[tok]) {
+                matching_length[tok] = matches;
+                offset[tok] = i;
             }
         }
         // Include matched characters when determining next symbol, then add that one to buffer size
-        current_buffer_size += matching_length[pix];
-        next_symbol[pix] = pixel_array[current_buffer_size];
+        current_buffer_size += matching_length[tok];
+        next_symbol[tok] = pixel_array[current_buffer_size];
         current_buffer_size++;
     }
 
@@ -64,31 +64,28 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     if(lzFilePointer == NULL) printf("Error opening lengths csv file for writing");
     
     // Write the lz header
-    fprintf(lzFilePointer, "P2\n%d %d\n%d\n%d\n", pic_pgm.width, pic_pgm.height, pic_pgm.maxGrayValue, searching_buffer_size);
+    fprintf(lzFilePointer, "P2\n%d %d\n%d\n%d %d\n", pic_pgm.width, pic_pgm.height, pic_pgm.maxGrayValue, searching_buffer_size, tok);
 
-    char *offset_frequency = calloc(pix, sizeof(char));
-    char *length_frequency = calloc(pix, sizeof(char));
+    char *offset_frequency = calloc(tok, sizeof(char));
+    char *length_frequency = calloc(tok, sizeof(char));
     int offset_sum = 0, length_sum = 0;
 
     // Write the LZ77 arrays for offsets, matching lengths, and next symbols (and csv data)
-    for(int i = 0; i < pix; i++) {
+    for(int i = 0; i < tok; i++) {
         fprintf(lzFilePointer, "%d ", offset[i]);
         offset_frequency[offset[i]]++;
     }
-    fprintf(lzFilePointer, "\n");
 
-    for(int i = 0; i < pix; i++) {
+    for(int i = 0; i < tok; i++) {
         fprintf(lzFilePointer, "%d ", matching_length[i]);
         length_frequency[matching_length[i]]++;
     }
-    fprintf(lzFilePointer, "\n");
 
-    for(int i = 0; i < pix; i++)
+    for(int i = 0; i < tok; i++)
         fprintf(lzFilePointer, "%d ", next_symbol[i]);
-    fprintf(lzFilePointer, "\n");
 
     // CSV data
-    for(int i = 0; i < pix; i++) {
+    for(int i = 0; i < tok; i++) {
         if(offset[i] != 0) {
             fprintf(offsetsFilePointer, "%d,%d\n", i, offset[i]);
             offset_sum += offset[i]; // for mean and stdev
@@ -106,16 +103,16 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     // Calculate the average and standard deviation of the offsets and match lengths
     float offset_mean, offset_stdev = 0.0, length_mean, length_stdev = 0.0;
     
-    offset_mean = (float) offset_sum / pix;
-    length_mean = (float) length_sum / pix;
+    offset_mean = (float) offset_sum / tok;
+    length_mean = (float) length_sum / tok;
 
-    for(int i = 0; i < pix; i++) {
+    for(int i = 0; i < tok; i++) {
         offset_stdev += pow(offset[i] - offset_mean, 2);
         length_stdev += pow(matching_length[i] - length_mean, 2);
     }
 
-    offset_stdev = sqrt(offset_stdev / pix);
-    length_stdev = sqrt(length_stdev / pix);
+    offset_stdev = sqrt(offset_stdev / tok);
+    length_stdev = sqrt(length_stdev / tok);
 
     // Save values in function parameters
     *avg_offset_Ptr = offset_mean;
@@ -123,7 +120,8 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     *std_offset_Ptr = offset_stdev;
     *std_length_Ptr = length_stdev;
 
-    // free memory
+    // Free memory
+    free_PGM_Image(&pic_pgm);
     free(pixel_array);
     free(offset);
     free(matching_length);

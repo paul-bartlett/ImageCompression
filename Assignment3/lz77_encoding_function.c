@@ -46,24 +46,14 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
 
     // Create files and file names
     int buffer_string_size = (int)(ceil(log10(searching_buffer_size))+1);
-    char buffer_string[buffer_string_size];
-    sprintf(buffer_string, "%d", searching_buffer_size);
     char lzFileName[strlen(in_PGM_filename_Ptr) + buffer_string_size + 5];
     char offsetsFileName[strlen(in_PGM_filename_Ptr) + buffer_string_size + 14];
     char lengthsFileName[strlen(in_PGM_filename_Ptr) + buffer_string_size + 14];
-    strcpy(lzFileName, in_PGM_filename_Ptr);
-    strcpy(lzFileName, ".");
-    strcpy(lzFileName, buffer_string);
-    strcpy(lzFileName, ".lz");
-    strcpy(offsetsFileName, in_PGM_filename_Ptr);
-    strcpy(offsetsFileName, ".");
-    strcpy(offsetsFileName, buffer_string);
-    strcpy(offsetsFileName, ".offsets.csv");
-    strcpy(lengthsFileName, in_PGM_filename_Ptr);
-    strcpy(lengthsFileName, ".");
-    strcpy(lengthsFileName, buffer_string);
-    strcpy(lengthsFileName, ".lengths.csv");
 
+    sprintf(lzFileName, "%s.%d.lz", in_PGM_filename_Ptr, searching_buffer_size);
+    sprintf(offsetsFileName, "%s.%d.offsets.csv", in_PGM_filename_Ptr, searching_buffer_size);
+    sprintf(lengthsFileName, "%s.%d.lengths.csv", in_PGM_filename_Ptr, searching_buffer_size);
+   
     FILE *lzFilePointer = fopen(lzFileName, "wb");
     if(lzFilePointer == NULL) printf("Error opening lz file for writing");
 
@@ -74,7 +64,7 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     if(lzFilePointer == NULL) printf("Error opening lengths csv file for writing");
     
     // Write the lz header
-    fprintf(lzFilePointer, "P2\n%d %d\n%d\n", pic_pgm.width, pic_pgm.height, searching_buffer_size);
+    fprintf(lzFilePointer, "P2\n%d %d\n%d\n%d\n", pic_pgm.width, pic_pgm.height, pic_pgm.maxGrayValue, searching_buffer_size);
 
     char *offset_frequency = calloc(pix, sizeof(char));
     char *length_frequency = calloc(pix, sizeof(char));

@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    char *PGM_image = argv[1];
+    char * PGM_image = argv[1];
     unsigned int searching_buffer_size = atoi(argv[2]);
     
     clock_t begin = clock();

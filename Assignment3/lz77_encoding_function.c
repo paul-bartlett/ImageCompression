@@ -67,28 +67,78 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     FILE *lzFilePointer = fopen(lzFileName, "wb");
     if(lzFilePointer == NULL) printf("Error opening lz file for writing");
 
-    // Write the header
+    FILE *offsetsFilePointer = fopen(offsetsFileName, "wb");
+    if(lzFilePointer == NULL) printf("Error opening offsets csv file for writing");
+
+    FILE *lengthsFilePointer = fopen(lengthsFileName, "wb");
+    if(lzFilePointer == NULL) printf("Error opening lengths csv file for writing");
+    
+    // Write the lz header
     fprintf(lzFilePointer, "P2\n%d %d\n%d\n", pic_pgm.width, pic_pgm.height, searching_buffer_size);
 
-    // Write the LZ77 arrays for offsets, matching lengths, and next symbols
-    for(int i = 0; i < pix; i++)
+    char *offset_frequency = calloc(pix, sizeof(char));
+    char *length_frequency = calloc(pix, sizeof(char));
+    int offset_sum = 0, length_sum = 0;
+
+    // Write the LZ77 arrays for offsets, matching lengths, and next symbols (and csv data)
+    for(int i = 0; i < pix; i++) {
         fprintf(lzFilePointer, "%d ", offset[i]);
+        offset_frequency[offset[i]]++;
+    }
     fprintf(lzFilePointer, "\n");
 
-    for(int i = 0; i < pix; i++)
+    for(int i = 0; i < pix; i++) {
         fprintf(lzFilePointer, "%d ", matching_length[i]);
+        length_frequency[matching_length[i]]++;
+    }
     fprintf(lzFilePointer, "\n");
 
     for(int i = 0; i < pix; i++)
         fprintf(lzFilePointer, "%d ", next_symbol[i]);
     fprintf(lzFilePointer, "\n");
 
+    // CSV data
+    for(int i = 0; i < pix; i++) {
+        if(offset[i] != 0) {
+            fprintf(offsetsFilePointer, "%d,%d\n", i, offset[i]);
+            offset_sum += offset[i]; // for mean and stdev
+        }
+        if(matching_length[i] != 0) {
+            fprintf(lengthsFilePointer, "%d,%d\n", i, matching_length[i]);
+            length_sum += matching_length[i]; // for mean and stdev
+        }
+    }
+
     fclose(lzFilePointer);
+    fclose(offsetsFilePointer);
+    fclose(lengthsFilePointer);
 
     // Calculate the average and standard deviation of the offsets and match lengths
+    float offset_mean, offset_stdev = 0.0, length_mean, length_stdev = 0.0;
+    
+    offset_mean = (float) offset_sum / pix;
+    length_mean = (float) length_sum / pix;
 
+    for(int i = 0; i < pix; i++) {
+        offset_stdev += pow(offset[i] - offset_mean, 2);
+        length_stdev += pow(matching_length[i] - length_mean, 2);
+    }
+
+    offset_stdev = sqrt(offset_stdev / pix);
+    length_stdev = sqrt(length_stdev / pix);
+
+    // Save values in function parameters
+    *avg_offset_Ptr = offset_mean;
+    *avg_length_Ptr = length_mean;
+    *std_offset_Ptr = offset_stdev;
+    *std_length_Ptr = length_stdev;
+
+    // free memory
     free(pixel_array);
     free(offset);
     free(matching_length);
     free(next_symbol);
+    free(offset_frequency);
+    free(length_frequency);
 }
+

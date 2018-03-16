@@ -29,7 +29,7 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
         for(int i = 1; i <= searching_buffer_size && i <= current_buffer_size; i++) {
             matches = 0;
             // Continue looping for more matches
-            while(pixel_array[current_buffer_size + matches] == pixel_array[current_buffer_size - i + matches] && current_buffer_size + matches < pixel_count) { // second might overflow
+            while(pixel_array[current_buffer_size + matches] == pixel_array[current_buffer_size - i + matches] && current_buffer_size + matches < pixel_count) {
                 matches++;
             }
             // Update match length only if larger

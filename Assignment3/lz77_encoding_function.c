@@ -66,8 +66,8 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
     // Write the lz header
     fprintf(lzFilePointer, "P2\n%d %d\n%d\n%d %d\n", pic_pgm.width, pic_pgm.height, pic_pgm.maxGrayValue, searching_buffer_size, tok);
 
-    char *offset_frequency = calloc(tok, sizeof(char));
-    char *length_frequency = calloc(tok, sizeof(char));
+    int *offset_frequency = calloc(tok, sizeof(int));
+    int *length_frequency = calloc(tok, sizeof(int));
     int offset_sum = 0, length_sum = 0;
 
     // Write the LZ77 arrays for offsets, matching lengths, and next symbols (and csv data)
@@ -86,14 +86,14 @@ void Encode_Using_LZ77(char *in_PGM_filename_Ptr, unsigned int searching_buffer_
 
     // CSV data
     for(int i = 0; i < tok; i++) {
-        if(offset[i] != 0) {
-            fprintf(offsetsFilePointer, "%d,%d\n", i, offset[i]);
-            offset_sum += offset[i]; // for mean and stdev
+        if(offset_frequency[i] != 0) {
+            fprintf(offsetsFilePointer, "%d,%d\n", i, offset_frequency[i]);
         }
-        if(matching_length[i] != 0) {
-            fprintf(lengthsFilePointer, "%d,%d\n", i, matching_length[i]);
-            length_sum += matching_length[i]; // for mean and stdev
+        if(length_frequency[i] != 0) {
+            fprintf(lengthsFilePointer, "%d,%d\n", i, length_frequency[i]);
         }
+        offset_sum += offset[i]; // for mean and stdev
+        length_sum += matching_length[i]; // for mean and stdev
     }
 
     fclose(lzFilePointer);

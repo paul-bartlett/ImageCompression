@@ -3,7 +3,7 @@
 void Decode_Using_LZ77(char *in_compressed_filename_Ptr) {
 
     char c;
-    int row, col, width, height, maxGrayValue, searching_buffer_size, current_buffer_size, pixel_count, tokens;
+    int row, col, width, height, maxGrayValue, searching_buffer_size, current_buffer_size = 0, pixel_count, tokens;
     struct PGM_Image pgmImage;
 
     // Open file for reading
@@ -63,7 +63,7 @@ void Decode_Using_LZ77(char *in_compressed_filename_Ptr) {
         pixel_array[current_buffer_size] = next_symbol[tok];
         current_buffer_size++;
     }
-
+	
     pixel_count = 0;
     // Fill image with decoded values
     for(row = 0; row < height; row++) {

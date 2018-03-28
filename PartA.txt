@@ -1,0 +1,78 @@
+1. a) SELECT student.name AS student, section.course_number AS course, IFNULL(Prerequisite_number, '') AS prerequisite FROM student JOIN grade_report USING(student_number) JOIN section USING(Section_identifier) LEFT JOIN prerequisite USING (Course_number) ORDER BY student, course;
+
+1. b) SELECT CONCAT_WS(" : ", course_number, Course_name) AS course, CONCAT_WS(" : ", prerequisite.Prerequisite_number, Prerequisite_name) AS prerequisite FROM prerequisite RIGHT JOIN course USING(Course_number) LEFT JOIN (SELECT Course_name AS Prerequisite_name, Course_number AS Prerequisite_number FROM course) pre ON (prerequisite.Prerequisite_number = pre.Prerequisite_number) ORDER BY course, prerequisite;
+
+2. Removed attribute Class from student since it did not serve any purpose, looked like it was a count of how many classes a student had that could easily be determined through a query. Split the table section into section and section_course to separate attribute Instructor from attribute Course_number, since there was a functional dependancy from Instructor to Course_number. The table prerequisite can't be put in BCNF since it has a reoccuring value in the attributes Course_number and Prerequisite_number (CS3320). New tables created here:
+
+#  Name, Student_number, Class, Major
+
+DROP TABLE IF EXISTS `student`;
+CREATE TABLE `student` (
+  `Name` varchar(100) NOT NULL DEFAULT '',
+  `Student_number` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `Major` varchar(10) NOT NULL DEFAULT '',
+  PRIMARY KEY (`Student_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `student` VALUES ('Brown',8,'CS'),('Smith',17,'CS');
+
+
+DROP TABLE IF EXISTS `course`;
+CREATE TABLE `course` (
+  `Course_identifier` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `Course_name` varchar(100) NOT NULL DEFAULT '',
+  `Course_number` varchar (10) NOT NULL DEFAULT '',
+  `Credit_hours` smallint(4) unsigned NOT NULL DEFAULT '0',
+  `Department` varchar(10) NOT NULL DEFAULT '',
+  PRIMARY KEY (`Course_identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `course` VALUES (1,'Intro to Computer Science','CS1310',4,'CS'),(2,'Data Structures','CS3320',4,'CS'),(3,'Discrete Mathematics','MATH2410',3,'MATH'),(4,'Database','CS3380',3,'CS');
+
+
+DROP TABLE IF EXISTS `section_course`;
+CREATE TABLE `section_course` (
+  `Section_identifier` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `Course_identifier` varchar (10) NOT NULL DEFAULT '',
+  PRIMARY KEY (`Section_identifier`),
+  INDEX (`Course_identifier`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+
+INSERT INTO `section_course` VALUES  (85,3),(92,1),(102,2),(112,3),(119,1),(135,4);
+
+
+DROP TABLE IF EXISTS `section`;
+CREATE TABLE `section` (
+  `Section_identifier` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `Semester` enum('Fall', 'Spring', 'Summer') NOT NULL DEFAULT 'Fall',
+  `year` year(4) NOT NULL DEFAULT '2014',
+  `Instructor` varchar(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (`Section_identifier`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+
+INSERT INTO `section` VALUES  (85, 'Fall', '07', 'King'),(92, 'Fall', '07', 'Andreson'),(102, 'Spring', '08', 'Knuth'),(112, 'Fall', '08', 'Chang'),(119, 'Fall', '08', 'Andreson'),(135, 'Fall', '08', 'Stonen');
+
+
+DROP TABLE IF EXISTS `grade_report`;
+CREATE TABLE `grade_report` (
+  `Student_number` varchar (10) NOT NULL DEFAULT '0',
+  `Section_identifier` int(10) unsigned NOT NULL default '0',
+  `Grade` char (2) NOT NULL DEFAULT '',
+  PRIMARY KEY (`Section_identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `grade_report` VALUES  (17,112,'B'),(17,119,'C'),(8,85,'A'),(8,92,'A'),(8,102,'B'),(8,135,'A');
+
+
+DROP TABLE IF EXISTS `prerequisite`;
+CREATE TABLE `prerequisite` (
+  `Course_number` varchar (10) NOT NULL DEFAULT '0',
+  `Prerequisite_number` varchar (10) NOT NULL DEFAULT '0',
+  KEY (`Course_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `prerequisite` VALUES ('CS3380','CS3320'),('CS3380','MATH2410'),('CS3320','CS1310');
+
+3. ALTER TABLE section_course ADD FOREIGN KEY (Course_identifier) REFERENCES course(Course_identifier);
+ALTER TABLE grade_report ADD FOREIGN KEY (Section_identifier) REFERENCES section(Section_identifier);
+ALTER TABLE prerequisite ADD FOREIGN KEY (Course_identifier) REFERENCES course(Course_identifier);

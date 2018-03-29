@@ -8,7 +8,10 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     int height = pic_pgm.height, width = pic_pgm.width, max_gray_value = pic_pgm.maxGrayValue, row, col;
 
     int prediction_array[height][width];
-    int *error_array = calloc(max_gray_value, sizeof(int)), error_sum = 0;
+    int error_array[max_gray_value+1];
+    memset(error_array, 0, (max_gray_value+1)*sizeof(int));
+    //int *error_array = calloc(max_gray_value + 1, sizeof(int)), 
+    int error_sum = 0;
 
     // Predictions used regardless of rule
     prediction_array[0][0] = 128;
@@ -81,7 +84,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     }
 
     // Write the error values and get sum for CSV and calculations
-    for(int i = 0; i < max_gray_value; i++)
+    for(int i = 0; i < max_gray_value+1; i++)
         if(error_array[i] != 0)
             fprintf(errors_file_pointer, "%d,%d\n", i, error_array[i]);
 
@@ -99,12 +102,14 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
         }
     }
 
+    error_std = sqrt(error_std / (height * width));
+
     // Save values in function parameters
     *avg_abs_error_Ptr = error_mean;
     *std_abs_error_Ptr = error_std;
 
     // Free memory
     free_PGM_Image(&pic_pgm);
-    free(error_array);
+    //free(error_array);
 }
 

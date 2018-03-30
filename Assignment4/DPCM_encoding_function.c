@@ -30,7 +30,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     fprintf(DPCM_file_pointer, "P2\n%d %d\n%d\n%d\n", width, height, max_gray_value, prediction_rule);
 
     // Predictions used regardless of rule
-    prediction_array[0][0] = 128;
+    prediction_array[0][0] = pic_pgm.image[0][0] - 128;
     fprintf(DPCM_file_pointer, "%d ", prediction_array[0][0]);
 
     // Top west row
@@ -38,7 +38,8 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
         prediction_array[0][col] =  pic_pgm.image[0][col] - pic_pgm.image[0][col-1];
         fprintf(DPCM_file_pointer, "%d ", prediction_array[0][col]);
     }
-
+    printf("enc: %d %d\n", prediction_array[0][0], pic_pgm.image[0][0]);
+    
     // Second north row 
     for(col = 0; col < width; col++) {
         prediction_array[1][col] =  pic_pgm.image[1][col] - pic_pgm.image[0][col];

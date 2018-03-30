@@ -3,7 +3,7 @@
 void Decode_Using_DPCM (char *in_filename_Ptr) {
     
     char c;
-    int row, col, width, height, max_gray_value, prediction_rule;
+    int row, col, width, height, max_gray_value, prediction_rule, pixel_count;
     struct PGM_Image pic_pgm;
 
     // Open file for reading
@@ -33,36 +33,36 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
     create_PGM_Image(&pic_pgm, width, height, max_gray_value);
 
     // Get prediction values from file in the order they were put in
+    pixel_count = width * height;
     int prediction_array[height][width];
 
     // Predictions used regardless of rule
-    fscanf(DPCM_file_pointer, "%d ", &prediction_array[0][0]);
-    pic_pgm.image[0][0] = prediction_array[0][0] + 128;
+    prediction_array[0][0] = geti(DPCM_file_pointer);
 
     // Top west row
     for(col = 1; col < width; col++) {
-        fscanf(DPCM_file_pointer, "%d ", &prediction_array[0][col]);
+        prediction_array[0][col] = geti(DPCM_file_pointer);
         pic_pgm.image[0][col] = prediction_array[0][col] + pic_pgm.image[0][col-1];
     }
     printf("dec: %d %d\n", prediction_array[0][0], pic_pgm.image[0][0]);
 
     // Second north row 
     for(col = 0; col < width; col++) {
-        fscanf(DPCM_file_pointer, "%d ", &prediction_array[1][col]);
+        prediction_array[1][col] = geti(DPCM_file_pointer);
         pic_pgm.image[1][col] = prediction_array[1][col] + pic_pgm.image[0][col];
     }
 
     // First and second north columns
     for(row = 2; row < height; row++) {
         for(col = 0; col < 2; col++) {
-            fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
+            prediction_array[row][col] = geti(DPCM_file_pointer);
             pic_pgm.image[row][col] = prediction_array[row][col] + pic_pgm.image[row-1][col];
         }
     }
 
     // Last north column
     for(row = 2; row < height; row++) {
-        fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][width-1]);
+        prediction_array[row][width-1] = geti(DPCM_file_pointer);
         pic_pgm.image[row][width-1] = prediction_array[row][width-1] + pic_pgm.image[row-1][width-1];
     }
     
@@ -72,7 +72,7 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
         case 1:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
-                    fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
+                    prediction_array[row][col] = geti(DPCM_file_pointer);
                     pic_pgm.image[row][col] = prediction_array[row][col] + pic_pgm.image[row][col-1];
                 }
             }

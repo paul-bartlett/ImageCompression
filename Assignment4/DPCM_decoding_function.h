@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "libpnm.h"
 
 void Decode_Using_DPCM (char *in_filename_Ptr);

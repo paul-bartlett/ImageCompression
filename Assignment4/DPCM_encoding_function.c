@@ -5,7 +5,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     // Image variables
     struct PGM_Image pic_pgm;
     load_PGM_Image(&pic_pgm, in_PGM_filename_Ptr);
-    int height = pic_pgm.height, width = pic_pgm.width, max_gray_value = pic_pgm.maxGrayValue, row, col;
+    int height = pic_pgm.height, width = pic_pgm.width, max_gray_value = pic_pgm.maxGrayValue, row, col, mode_flag;
 
     int prediction_array[height][width];
     int error_array[max_gray_value + 1];
@@ -38,7 +38,6 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
         prediction_array[0][col] =  pic_pgm.image[0][col] - pic_pgm.image[0][col-1];
         fprintf(DPCM_file_pointer, "%d ", prediction_array[0][col]);
     }
-    printf("enc: %d %d\n", prediction_array[0][0], pic_pgm.image[0][0]);
     
     // Second north row 
     for(col = 0; col < width; col++) {
@@ -94,6 +93,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
 
             // CALIC prediction
         case 4:
+            mode_flag = 1;
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
                     float prediction_fl;
@@ -108,7 +108,6 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
                         dv = abs(w - nw) + abs(n - nn) + abs(ne - nne),
                         mode = 1,
                         mode_check[6] = { ww, n, nw, ne, nn, nne },
-                        mode_flag = 1,
                         binary = 1,
                         binary_check[2];
 
@@ -141,10 +140,20 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
 
                         // CALIC binary mode
                         if(mode == 0) {
+                            // Match
                             if(pic_pgm.image[row][col] == w)
                                 prediction_array[row][col] = 0;
-                            else 
-                                prediction_array[row][col] = 1;
+                            else {
+                                // Exit binary mode
+                                if(pic_pgm.image[row][col] != binary_check[0] && pic_pgm.image[row][col] != binary_check[1]) {
+                                    mode = 1;
+                                    mode_flag = 0;
+                                    fprintf(DPCM_file_pointer, "2 ");
+                                // Other value
+                                } else {
+                                    prediction_array[row][col] = 1;
+                                }
+                            }
                         } 
 
                         // CALIC continuous-tone mode

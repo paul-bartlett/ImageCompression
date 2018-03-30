@@ -3,7 +3,7 @@
 void Decode_Using_DPCM (char *in_filename_Ptr) {
     
     char c;
-    int row, col, width, height, max_gray_value, prediction_rule;
+    int row, col, width, height, max_gray_value, prediction_rule, mode_flag;
     struct PGM_Image pic_pgm;
 
     // Open file for reading
@@ -28,7 +28,6 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
     height = geti(DPCM_file_pointer);
     max_gray_value = geti(DPCM_file_pointer);
     prediction_rule = geti(DPCM_file_pointer);
-    printf("width: %d, height: %d, maxg: %d, pred: %d\n", width, height, max_gray_value, prediction_rule);
 
     create_PGM_Image(&pic_pgm, width, height, max_gray_value);
 
@@ -44,7 +43,6 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
         fscanf(DPCM_file_pointer, "%d ", &prediction_array[0][col]);
         pic_pgm.image[0][col] = prediction_array[0][col] + pic_pgm.image[0][col-1];
     }
-    printf("dec: %d %d\n", prediction_array[0][0], pic_pgm.image[0][0]);
 
     // Second north row 
     for(col = 0; col < width; col++) {
@@ -82,7 +80,7 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
         case 2:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
-                    prediction_array[row][col] = geti(DPCM_file_pointer);
+                    fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
                     pic_pgm.image[row][col] = prediction_array[row][col] + pic_pgm.image[row-1][col];
                 }   
             }
@@ -92,14 +90,15 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
         case 3:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
-                    prediction_array[row][col] = geti(DPCM_file_pointer); 
+                    fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
                     pic_pgm.image[row][col] = prediction_array[row][col] + ((pic_pgm.image[row][col-1] / 2) + (pic_pgm.image[row-1][col] / 2));
                 }
             }
             break;
 
             // CALIC prediction
-        case 5:
+        case 4:
+            mode_flag = 1;
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
                     float prediction_fl;
@@ -114,9 +113,11 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
                         dv = abs(w - nw) + abs(n - nn) + abs(ne - nne),
                         mode = 1,
                         mode_check[6] = { ww, n, nw, ne, nn, nne },
-                        mode_flag = 1,
                         binary = 1,
-                        binary_check[2];
+                        binary_check[2],
+                        prediction;
+                    
+                        fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
 
                         // Check if CALIC should be in binary mode or continuous mode
                         if(mode_flag) {
@@ -132,8 +133,8 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
                                     // Exit binary mode if >2 values found
                                 } else if(binary_check[0] != mode_check[i] && binary_check[1] != mode_check[i]) {
                                     if(mode == 0) {
-                                        fprintf(DPCM_file_pointer, "2 "); // Send 2 to exit binary mode
                                         mode = 1;
+                                        fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
                                     }
                                     mode_flag = 0;
                                     break;
@@ -147,35 +148,45 @@ void Decode_Using_DPCM (char *in_filename_Ptr) {
 
                         // CALIC binary mode
                         if(mode == 0) {
-                            if(pic_pgm.image[row][col] == w)
-                                prediction_array[row][col] = 0;
-                            else 
-                                prediction_array[row][col] = 1;
+                            // Match
+                            if(prediction_array[row][col] == 0)
+                                pic_pgm.image[row][col] = w;
+                            // Other value
+                            else if(prediction_array[row][col] == 1) {
+                                if(w != binary_check[0])
+                                    pic_pgm.image[row][col] = binary_check[0];
+                                else
+                                    pic_pgm.image[row][col] = binary_check[1];
+                            // Exit binary mode
+                            } else if(prediction_array[row][col] == 2) {
+                                mode = 1;
+                                mode_flag = 0;
+                                fscanf(DPCM_file_pointer, "%d ", &prediction_array[row][col]);
+                            }
                         } 
 
                         // CALIC continuous-tone mode
                         if(mode == 1) {
                             if(dv - dh > 80) 
-                                prediction_array[row][col] = w;
+                                prediction = w;
                             else if(dh - dv > 80) 
-                                prediction_array[row][col] = n;
+                                prediction = n;
                             else {
                                 prediction_fl = (w + n)/2.0 + (ne - nw)/4.0;
                                 if(dv - dh > 32)
-                                    prediction_array[row][col] = round((1.0/2.0) * prediction_fl + (1.0/2.0) * w);
+                                    prediction = round((1.0/2.0) * prediction_fl + (1.0/2.0) * w);
                                 else if(dh - dv > 32)
-                                    prediction_array[row][col] = round((1.0/2.0) * prediction_fl + (1.0/2.0) * n);
+                                    prediction = round((1.0/2.0) * prediction_fl + (1.0/2.0) * n);
                                 else if(dv - dh > 8)
-                                    prediction_array[row][col] = round((3.0/4.0) * prediction_fl + (1.0/4.0) * w);
+                                    prediction = round((3.0/4.0) * prediction_fl + (1.0/4.0) * w);
                                 else if(dh - dv > 8)
-                                    prediction_array[row][col] = round((3.0/4.0) * prediction_fl + (1.0/4.0) * n);
+                                    prediction = round((3.0/4.0) * prediction_fl + (1.0/4.0) * n);
                                 else
-                                    prediction_array[row][col] = round(prediction_fl);
+                                    prediction = round(prediction_fl);
                             }
 
-                            prediction_array[row][col] =  pic_pgm.image[row][col] - prediction_array[row][col];
+                            pic_pgm.image[row][col] = prediction + prediction_array[row][col];
                         }
-                        // fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
                 }
             }
 

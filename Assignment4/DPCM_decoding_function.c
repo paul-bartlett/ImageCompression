@@ -2,24 +2,38 @@
 
 void Decode_Using_DPCM (char *in_filename_Ptr) {
     
-    char c;
+    char c, *filename;
     int row, col, width, height, max_gray_value, prediction_rule, mode_flag;
     struct PGM_Image pic_pgm;
 
+    // Check if valid file type
+    if((filename = strrchr(in_filename_Ptr, '.')) != NULL) {
+        if(strcmp(filename, ".DPCM") != 0) {
+            printf("File name given is not a .DPCM file\n");
+            return;
+        }
+    } else {
+        printf("File name given has no extension (should be .DPCM)\n");
+        return;
+    }
+
     // Open file for reading
     FILE *DPCM_file_pointer =  fopen(in_filename_Ptr, "rb");
-    if(DPCM_file_pointer == NULL) printf("Error opening DPCM file for reading");
+    if(DPCM_file_pointer == NULL) {
+        printf("Error opening DPCM file for reading\n");
+        return;
+    }
 
     // Make sure the first char is P
     if(fgetc(DPCM_file_pointer) != 'P') { 
-        printf("Invalid PGM image: missing P");
+        printf("Invalid PGM image: missing P\n");
         fclose(DPCM_file_pointer);
     }
 
     // Make sure the second char is either a 2 or 5
     c = fgetc(DPCM_file_pointer);
     if(c != '2' && c != '5') { 
-        printf("Invalid PGM image: missing 2 or 5");
+        printf("Invalid PGM image: missing 2 or 5\n");
         fclose(DPCM_file_pointer);
     }
 

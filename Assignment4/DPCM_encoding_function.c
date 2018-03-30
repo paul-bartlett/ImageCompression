@@ -10,8 +10,19 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     int prediction_array[height][width];
     int error_array[max_gray_value + 1];
     memset(error_array, 0, (max_gray_value + 1)*sizeof(int));
-    //int *error_array = calloc(max_gray_value + 1, sizeof(int)); 
     int error_sum = 0;
+    char *filename;
+
+    // Check if valid file type
+    if((filename = strrchr(in_PGM_filename_Ptr, '.')) != NULL) {
+        if(strcmp(filename, ".pgm") != 0) {
+            printf("File name given is not a .pgm file\n");
+            return;
+        }
+    } else {
+        printf("File name given has no extension (should be .pgm)\n");
+        return;
+    }
 
     // Write predicted values to a file
     char DPCM_filename[strlen(in_PGM_filename_Ptr) + 2 + 5];
@@ -19,12 +30,18 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
 
     sprintf(DPCM_filename, "%s.%d.DPCM", in_PGM_filename_Ptr, prediction_rule);
     sprintf(errors_filename, "%s.%d.errors.csv", in_PGM_filename_Ptr, prediction_rule);
-
+    
     FILE *DPCM_file_pointer = fopen(DPCM_filename, "wb");
-    if(DPCM_file_pointer == NULL) printf("Error opening DPCM file for writing\n");
+    if(DPCM_file_pointer == NULL) {
+        printf("Error opening DPCM file for writing\n");
+        return;
+    }
 
     FILE *errors_file_pointer = fopen(errors_filename, "wb");
-    if(errors_file_pointer == NULL) printf("Error opening errors file for writing\n");
+    if(errors_file_pointer == NULL) {
+        printf("Error opening errors file for writing\n");
+        return;
+    }
 
     // Write the DPCM header
     fprintf(DPCM_file_pointer, "P2\n%d %d\n%d\n%d\n", width, height, max_gray_value, prediction_rule);
@@ -71,7 +88,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
             }
             break;
 
-            // N prediction
+        // N prediction
         case 2:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
@@ -81,7 +98,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
             }
             break;
 
-            // W/2 + N/2 prediction
+        // W/2 + N/2 prediction
         case 3:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
@@ -91,7 +108,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
             }
             break;
 
-            // CALIC prediction
+        // CALIC prediction
         case 4:
             mode_flag = 1;
             for(row = 2; row < height; row++) {
@@ -122,7 +139,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
                                         binary_check[1] = mode_check[i];
                                         binary++;
                                     }
-                                    // Exit binary mode if >2 values found
+                                // Exit binary mode if >2 values found
                                 } else if(binary_check[0] != mode_check[i] && binary_check[1] != mode_check[i]) {
                                     if(mode == 0) {
                                         fprintf(DPCM_file_pointer, "2 "); // Send 2 to exit binary mode
@@ -140,6 +157,7 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
 
                         // CALIC binary mode
                         if(mode == 0) {
+                            printf("1");
                             // Match
                             if(pic_pgm.image[row][col] == w)
                                 prediction_array[row][col] = 0;
@@ -223,6 +241,5 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
 
     // Free memory
     free_PGM_Image(&pic_pgm);
-    //free(error_array);
 }
 

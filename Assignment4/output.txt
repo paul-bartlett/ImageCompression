@@ -1,0 +1,104 @@
+make testCompression
+make[1]: Entering directory '/home/paul/Documents/CS4481/Assignment4'
+----------------------------------------
+Generating  DPCM compressed images
+
+./DPCM_encoding peppers.raw.pgm 1
+Absolute prediction error average: 10.41
+Absolute prediction standard deviation: 17.94
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding peppers.raw.pgm 2
+Absolute prediction error average: 9.59
+Absolute prediction standard deviation: 16.91
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding peppers.raw.pgm 3
+Absolute prediction error average: 8.38
+Absolute prediction standard deviation: 13.64
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding peppers.raw.pgm 4
+Absolute prediction error average: 7.35
+Absolute prediction standard deviation: 12.17
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding goldhill.raw.pgm 1
+Absolute prediction error average: 11.64
+Absolute prediction standard deviation: 16.29
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding goldhill.raw.pgm 2
+Absolute prediction error average: 12.63
+Absolute prediction standard deviation: 15.70
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding goldhill.raw.pgm 3
+Absolute prediction error average: 10.10
+Absolute prediction standard deviation: 12.23
+Compression time: 0.01
+----------------------------------------
+./DPCM_encoding goldhill.raw.pgm 4
+Absolute prediction error average: 9.02
+Absolute prediction standard deviation: 11.45
+Compression time: 0.01
+----------------------------------------
+make[1]: Leaving directory '/home/paul/Documents/CS4481/Assignment4'
+make testDecompression
+make[1]: Entering directory '/home/paul/Documents/CS4481/Assignment4'
+----------------------------------------
+Generating  DPCM compressed images
+
+./DPCM_decoding peppers.raw.pgm.1.DPCM
+Decompression time: 0.02
+----------------------------------------
+./DPCM_decoding peppers.raw.pgm.2.DPCM
+Decompression time: 0.02
+----------------------------------------
+./DPCM_decoding peppers.raw.pgm.3.DPCM
+Decompression time: 0.01
+----------------------------------------
+./DPCM_decoding peppers.raw.pgm.4.DPCM
+Decompression time: 0.02
+----------------------------------------
+./DPCM_decoding goldhill.raw.pgm.1.DPCM
+Decompression time: 0.01
+----------------------------------------
+./DPCM_decoding goldhill.raw.pgm.2.DPCM
+Decompression time: 0.01
+----------------------------------------
+./DPCM_decoding goldhill.raw.pgm.3.DPCM
+Decompression time: 0.02
+----------------------------------------
+./DPCM_decoding goldhill.raw.pgm.4.DPCM
+Decompression time: 0.02
+----------------------------------------
+make[1]: Leaving directory '/home/paul/Documents/CS4481/Assignment4'
+make testComparingImages
+make[1]: Entering directory '/home/paul/Documents/CS4481/Assignment4'
+----------------------------------------
+./compare_pgm_images peppers.raw.pgm peppers.raw.pgm.1.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images peppers.raw.pgm peppers.raw.pgm.2.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images peppers.raw.pgm peppers.raw.pgm.3.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images peppers.raw.pgm peppers.raw.pgm.4.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images goldhill.raw.pgm goldhill.raw.pgm.1.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images goldhill.raw.pgm goldhill.raw.pgm.2.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images goldhill.raw.pgm goldhill.raw.pgm.3.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+./compare_pgm_images goldhill.raw.pgm goldhill.raw.pgm.4.DPCM.pgm
+Mean absolute error: 0.00
+----------------------------------------
+make[1]: Leaving directory '/home/paul/Documents/CS4481/Assignment4'

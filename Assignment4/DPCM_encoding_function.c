@@ -13,55 +13,89 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
     //int *error_array = calloc(max_gray_value + 1, sizeof(int)); 
     int error_sum = 0;
 
+    // Write predicted values to a file
+    char DPCM_filename[strlen(in_PGM_filename_Ptr) + 2 + 5];
+    char errors_filename[strlen(in_PGM_filename_Ptr) + 2 + 7 + 4];
+
+    sprintf(DPCM_filename, "%s.%d.DPCM", in_PGM_filename_Ptr, prediction_rule);
+    sprintf(errors_filename, "%s.%d.errors.csv", in_PGM_filename_Ptr, prediction_rule);
+
+    FILE *DPCM_file_pointer = fopen(DPCM_filename, "wb");
+    if(DPCM_file_pointer == NULL) printf("Error opening DPCM file for writing\n");
+
+    FILE *errors_file_pointer = fopen(errors_filename, "wb");
+    if(errors_file_pointer == NULL) printf("Error opening errors file for writing\n");
+
+    // Write the DPCM header
+    fprintf(DPCM_file_pointer, "P2\n%d %d\n%d\n%d\n", width, height, max_gray_value, prediction_rule);
+
     // Predictions used regardless of rule
     prediction_array[0][0] = 128;
+    fprintf(DPCM_file_pointer, "%d ", prediction_array[0][0]);
 
     // Top west row
-    for(col = 1; col < width; col++)
+    for(col = 1; col < width; col++) {
         prediction_array[0][col] =  pic_pgm.image[0][col] - pic_pgm.image[0][col-1];
+        fprintf(DPCM_file_pointer, "%d ", prediction_array[0][col]);
+    }
 
     // Second north row 
-    for(col = 0; col < width; col++)
+    for(col = 0; col < width; col++) {
         prediction_array[1][col] =  pic_pgm.image[1][col] - pic_pgm.image[0][col];
+        fprintf(DPCM_file_pointer, "%d ", prediction_array[1][col]);
+    }
 
     // First and second north columns
-    for(row = 2; row < height; row++)
-        for(col = 0; col < 2; col++) 
+    for(row = 2; row < height; row++) {
+        for(col = 0; col < 2; col++) {
             prediction_array[row][col] = pic_pgm.image[row][col] - pic_pgm.image[row-1][col];
+            fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
+        }
+    }
 
     // Last north column
-    for(row = 2; row < height; row++)
+    for(row = 2; row < height; row++) {
         prediction_array[row][width-1] = pic_pgm.image[row][width-1] - pic_pgm.image[row-1][width-1];
+        fprintf(DPCM_file_pointer, "%d ", prediction_array[row][width-1]);
+    }
+
     // Prediction rule encoding: 1 for W, 2 for N, 3 for W/2 + N/2, 4 for CALIC
     switch(prediction_rule) {
         // W prediction
         case 1:
-            for(row = 2; row < height; row++)
-                for(col = 2; col < (width - 1); col++)
+            for(row = 2; row < height; row++) {
+                for(col = 2; col < (width - 1); col++) {
                     prediction_array[row][col] =  pic_pgm.image[row][col] - pic_pgm.image[row][col-1];
-
+                    fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
+                }
+            }
             break;
 
             // N prediction
         case 2:
-            for(row = 2; row < height; row++)
-                for(col = 2; col < (width - 1); col++)
+            for(row = 2; row < height; row++) {
+                for(col = 2; col < (width - 1); col++) {
                     prediction_array[row][col] =  pic_pgm.image[row][col] - pic_pgm.image[row-1][col];
-
+                    fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
+                }   
+            }
             break;
 
             // W/2 + N/2 prediction
         case 3:
-            for(row = 2; row < height; row++)
-                for(col = 2; col < (width - 1); col++)
+            for(row = 2; row < height; row++) {
+                for(col = 2; col < (width - 1); col++) {
                     prediction_array[row][col] =  pic_pgm.image[row][col] - ((pic_pgm.image[row][col-1] / 2) + (pic_pgm.image[row-1][col] / 2));
-
+                    fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
+                }
+            }
             break;
 
             // CALIC prediction
         case 4:
             for(row = 2; row < height; row++) {
                 for(col = 2; col < (width - 1); col++) {
+                    float prediction_fl;
                     int w = pic_pgm.image[row][col-1], 
                         ww = pic_pgm.image[row][col-2],
                         n = pic_pgm.image[row-1][col],
@@ -88,10 +122,10 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
                                         binary_check[1] = mode_check[i];
                                         binary++;
                                     }
-                                // Exit binary mode if >2 values found
+                                    // Exit binary mode if >2 values found
                                 } else if(binary_check[0] != mode_check[i] && binary_check[1] != mode_check[i]) {
                                     if(mode == 0) {
-                                        // fprintf(DPCM_file_pointer, "2 "); // Send 2 to exit binary mode
+                                        fprintf(DPCM_file_pointer, "2 "); // Send 2 to exit binary mode
                                         mode = 1;
                                     }
                                     mode_flag = 0;
@@ -119,19 +153,22 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
                             else if(dh - dv > 80) 
                                 prediction_array[row][col] = n;
                             else {
-                                prediction_array[row][col] = (w + n)/2 + (ne - nw)/4;
+                                prediction_fl = (w + n)/2.0 + (ne - nw)/4.0;
                                 if(dv - dh > 32)
-                                    prediction_array[row][col] = 1/2 * prediction_array[row][col] + 1/2 * w;
+                                    prediction_array[row][col] = round((1.0/2.0) * prediction_fl + (1.0/2.0) * w);
                                 else if(dh - dv > 32)
-                                    prediction_array[row][col] = 1/2 * prediction_array[row][col] + 1/2 * n;
+                                    prediction_array[row][col] = round((1.0/2.0) * prediction_fl + (1.0/2.0) * n);
                                 else if(dv - dh > 8)
-                                    prediction_array[row][col] = 3/4 * prediction_array[row][col] + 1/4 * w;
+                                    prediction_array[row][col] = round((3.0/4.0) * prediction_fl + (1.0/4.0) * w);
                                 else if(dh - dv > 8)
-                                    prediction_array[row][col] = 3/4 * prediction_array[row][col] + 1/4 * n;
+                                    prediction_array[row][col] = round((3.0/4.0) * prediction_fl + (1.0/4.0) * n);
+                                else
+                                    prediction_array[row][col] = round(prediction_fl);
                             }
 
                             prediction_array[row][col] =  pic_pgm.image[row][col] - prediction_array[row][col];
                         }
+                        fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
                 }
             }
 
@@ -141,26 +178,9 @@ void Encode_Using_DPCM(char *in_PGM_filename_Ptr, int prediction_rule, float *av
             printf("Incorrect prediction rule used, must be from 1-4\n");
     }
 
-    // Write predicted values to a file
-    char DPCM_filename[strlen(in_PGM_filename_Ptr) + 2 + 5];
-    char errors_filename[strlen(in_PGM_filename_Ptr) + 2 + 7 + 4];
-
-    sprintf(DPCM_filename, "%s.%d.DPCM", in_PGM_filename_Ptr, prediction_rule);
-    sprintf(errors_filename, "%s.%d.errors.csv", in_PGM_filename_Ptr, prediction_rule);
-
-    FILE *DPCM_file_pointer = fopen(DPCM_filename, "wb");
-    if(DPCM_file_pointer == NULL) printf("Error opening DPCM file for writing\n");
-
-    FILE *errors_file_pointer = fopen(errors_filename, "wb");
-    if(errors_file_pointer == NULL) printf("Error opening errors file for writing\n");
-
-    // Write the DPCM header
-    fprintf(DPCM_file_pointer, "P2\n%d %d\n%d\n%d\n", width, height, max_gray_value, prediction_rule);
-
-    // Write the prediction values and get frequency and sum
+    // Get the frequency and sum
     for(row = 0; row < height; row++) {
         for(col = 0; col < width; col++) {
-            fprintf(DPCM_file_pointer, "%d ", prediction_array[row][col]);
             error_array[abs(prediction_array[row][col])]++; // frequency
             error_sum += abs(prediction_array[row][col]); // for mean and stdev
         }
